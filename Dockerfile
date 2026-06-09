@@ -6,14 +6,17 @@ WORKDIR /app
 # Copy dependency definitions
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm install --omit=dev
+# Install all dependencies (including devDependencies like Vite)
+RUN npm install
 
 # Copy application source code
 COPY . .
 
 # Build Vite application
 RUN npm run build
+
+# Remove development dependencies to keep the container small
+RUN npm prune --omit=dev
 
 # Expose port
 EXPOSE 8080
