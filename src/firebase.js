@@ -9,14 +9,20 @@ import { getPerformance, trace } from 'firebase/performance';
  * Firebase configuration — values come from .env (VITE_ prefix = exposed to browser).
  * Client-side service 8-11.
  */
+/**
+ * Firebase configuration — hardcoded public values (safe to commit).
+ * Firebase client config is intentionally public; security is enforced
+ * by Firestore Security Rules, not by hiding these values.
+ * See: https://firebase.google.com/docs/projects/api-keys
+ */
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyA-8vqsV7WKIqrsVBSRkIcaA2lwn9gP8oM',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'ecosense-india.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'ecosense-india',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'ecosense-india.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '569941780563',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:569941780563:web:d15ae7bc2c4fb124f7ea6',
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-3L819L969Z',
 };
 
 // ── Initialize Firebase ───────────────────────────────────────────────────────
