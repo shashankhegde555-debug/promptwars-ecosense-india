@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ── 1. Users Collection ──────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['displayName', 'email'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 100
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 100
+        && (!('city' in request.resource.data) || request.resource.data.city == null || (request.resource.data.city is string && request.resource.data.city.size() <= 100))
+        && (!('photoURL' in request.resource.data) || request.resource.data.photoURL == null || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500));
+      allow delete: if isOwner(userId);
+
+      // ── 2. User Activities Subcollection ───────────────────────────────────
+      match /activities/{activityId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['name', 'category', 'carbonKg', 'createdAt'])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() <= 200
+          && request.resource.data.category in ['transport', 'food', 'energy', 'shopping', 'waste']
+          && (request.resource.data.carbonKg is int || request.resource.data.carbonKg is float)
+          && request.resource.data.carbonKg >= 0
+          && request.resource.data.carbonKg <= 100000;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── 3. User Pledges Subcollection ──────────────────────────────────────
+      match /pledges/{month} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['targetReductionPercent', 'baselineKgPerDay', 'createdAt'])
+          && (request.resource.data.targetReductionPercent is int || request.resource.data.targetReductionPercent is float)
+          && request.resource.data.targetReductionPercent >= 0
+          && request.resource.data.targetReductionPercent <= 100
+          && (request.resource.data.baselineKgPerDay is int || request.resource.data.baselineKgPerDay is float)
+          && request.resource.data.baselineKgPerDay >= 0;
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // ── 4. Community Leaderboard Collection ──────────────────────────────────
+    match /leaderboard/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['displayName', 'photoURL', 'city', 'reductionPercent', 'totalCO2Avoided', 'updatedAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 100
+        && (request.resource.data.photoURL == null || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500))
+        && request.resource.data.city is string
+        && request.resource.data.city.size() <= 100
+        && (request.resource.data.reductionPercent is int || request.resource.data.reductionPercent is float)
+        && request.resource.data.reductionPercent >= 0
+        && request.resource.data.reductionPercent <= 100
+        && (request.resource.data.totalCO2Avoided is int || request.resource.data.totalCO2Avoided is float)
+        && request.resource.data.totalCO2Avoided >= 0;
+      allow delete: if isOwner(userId);
+    }
+  }
+}
