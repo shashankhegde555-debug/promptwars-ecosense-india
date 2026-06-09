@@ -72,9 +72,15 @@ export async function generateWithGemini(systemInstruction, userMessage) {
   throw new AIServiceError(`Gemini service failed after ${maxRetries} attempts: ${lastError?.message || lastError}`);
 }
 
-// Helper to check if GCP clients should be initialized
+// Helper to check if GCP clients should be initialized.
+// Requires GOOGLE_APPLICATION_CREDENTIALS to be set so that on non-GCP
+// hosts like Render (which have no service account), all GCP SDK clients
+// are silently skipped and the server starts cleanly.
 function shouldInitGCP() {
-  return config.isProduction || config.nodeEnv === 'test';
+  const hasCredentials =
+    !!process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    process.env.K_SERVICE != null; // K_SERVICE is set by Cloud Run automatically
+  return (config.isProduction || config.nodeEnv === 'test') && hasCredentials;
 }
 
 // ── 2. Cloud Logging ────────────────────────────────────────────────────────

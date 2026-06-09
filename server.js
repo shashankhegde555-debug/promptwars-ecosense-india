@@ -37,9 +37,10 @@ if (existsSync(distPath)) {
 // ── Start Server ──────────────────────────────────────────────────────────────
 const server = app.listen(config.port, () => {
   logger.info(`🌿 EcoSense India API running on port ${config.port} [${config.nodeEnv}]`);
-  // Only write to Cloud Logging in production (avoids gRPC auth errors in local dev)
+  // Only write to Cloud Logging when GCP credentials are available
   if (config.isProduction) {
-    writeCloudLog('INFO', 'Server started', { port: config.port, env: config.nodeEnv });
+    writeCloudLog('INFO', 'Server started', { port: config.port, env: config.nodeEnv })
+      .catch(() => {}); // silently ignore if GCP credentials are not configured
   }
 });
 
